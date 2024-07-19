@@ -1,0 +1,43 @@
+version: "3.3"
+
+services:
+  database:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+
+  api:
+    depends_on:
+      - database
+    build: 
+      context: ./backend
+      dockerfile: ./deployment/Dockerfile
+    ports:
+      - "4001:4001"
+    environment:
+      - POSTGRES_HOST=database
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=secret
+      - POSTGRES_DB=postgres
+      - HTTP_PORT=4001
+
+  web:
+    depends_on:
+      - api
+    build: 
+      context: ./frontend
+      dockerfile: ./deployment/Dockerfile
+    restart: always
+    volumes:
+      - ./frontend:/client
+    ports:
+      - "80:80"
+    environment:
+      - NGINX_HOST=foobar.com
+      - NGINX_PORT=80
